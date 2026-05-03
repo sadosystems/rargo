@@ -1,0 +1,1 @@
+# seascape: Seascape is a rootless container runtime and executor that runs build actions in hermetic sandboxes. it is largely adapted from cargo-maelstrom, in particular: maelstrom-worker-child, maelstrom-linux.
