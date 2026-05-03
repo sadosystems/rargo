@@ -11,11 +11,10 @@
 //! 2. Low Latency.
 //! 
 //! Taking these two things together, in crep both the client and the server hold more
-//! session state than the equivalent in REAPI, thats less pure and less scalable but
-//! it lets us do more cheap tricks to keep latency low. for all logic that relies on 
-//! this ephemeral session state, there must always be a fallback so that if either the
-//! client or the server restarted mid session the worst that should be able to happen
-//! is something goes slower.
+//! session state than the equivalent in REAPI, that is less pure and less scalable but
+//! it lets us do more cheap tricks to keep latency low. All logic that relies on 
+//! ephemeral session state, must have a fallback path. If the client or the server 
+//! restarts mid session the worst that should be able to happen is a slowdown.
 
 mod errors;
 
