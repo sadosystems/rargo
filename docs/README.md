@@ -1,5 +1,5 @@
 <p align="center">
-  <img src=".github/assets/AbrasiveKeysWhite.png" width="400">
+  <img src="docs/assets/AbrasiveKeysWhite.png" width="400">
 </p> 
 
 # abrasive
