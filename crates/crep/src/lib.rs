@@ -1,3 +1,22 @@
+//! crep: Cargo Remote Execution Protocol
+//! 
+//! This crate defines the protocol used by the abrasive cli and the abrasive broker.
+//! It defines the serialization for the messages in the protocol and it also serves 
+//! as specification / documentation.   
+//! 
+//! The crep is inspired in many ways by the REAPI, these are the key differences in
+//! the design goals. 
+//! 1. NOT horizontally scalable, the abrasive solution to horizontal scale is run 
+//!    another instance.
+//! 2. Low Latency.
+//! 
+//! Taking these two things together, in crep both the client and the server hold more
+//! session state than the equivalent in REAPI, thats less pure and less scalable but
+//! it lets us do more cheap tricks to keep latency low. for all logic that relies on 
+//! this ephemeral session state, there must always be a fallback so that if either the
+//! client or the server restarted mid session the worst that should be able to happen
+//! is something goes slower.
+
 mod errors;
 
 pub use errors::DecodeError;
@@ -14,28 +33,58 @@ pub struct Message {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct MessageMetadata {
+    /// The instance name is a unique identifier for a given instance of abrasive.
+    /// An instance has: exactly one broker, N workers and optionally an  
+    /// observability SPA server.
     instance_name: String,
+
+    /// Unique user id, scoped by instance (not universally unique).
     user_id: u32,
 }
 
+
+
 #[derive(Debug, Serialize, Deserialize)]
 pub enum MessageType {
-    /// Splash are basically just ping / pong.
+    /// The client requests a splash text from the server.
+    ///
+    /// Splash is basically just ping / pong. The messages in splash are like the
+    /// splash text messages from Minecraft. I prefer these for checking if the
+    /// server is alive / checking if the server has been redeployed to a new
+    /// version because in late night debugging sessions I often mix up numbers.
     SplashRequest,
+
+    /// The server returns a splash text to the client
     SplashResponse(String),
+
+    /// The client asks the server to perform a cargo command.
+    CommandRequest(CargoCommand),
+
+    /// The server returns the exit code for the cargo command.
+    CommandResponse{ exit_code: u8 }
 }
 
 // ---- Types -----
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CargoCommand {
-    /// the arguments passed to abrasive meant for cargo, split on whitespace.
-    /// this does not include the 'cargo' / 'abrasive' part of the command. 
+    /// The arguments passed to abrasive meant for cargo, split on whitespace.
+    /// this does not include the 'cargo' / 'abrasive' part of the command.
     /// for example:
     /// ["build", "--lib", "-p", "crep"]
     args: Vec<String>,
 
-    host_platform: Vec<String>,
+    /// If the cargo flag '--target' is not explicitly set, the broker target
+    /// host_platform.
+    ///
+    /// This defines the target platform the binary must be built for. For remote
+    /// test execute, this constrains the execution environment. The server MUST
+    /// choose to execute the test on a worker satisfying the requirements of the
+    /// selected target.
+    ///
+    /// The expected use for this is the client detects the host Platform triple.
+    /// That way the server defaults to targeting the same arch as the client.
+    host_platform: PlatformTriple,
 
     /// The environment variables to set when running the cargo command. The worker
     /// may provide its own default environment variables; these defaults can be
@@ -44,7 +93,7 @@ pub struct CargoCommand {
     /// In order to ensure that equivalent CargoCommands always hash to the same
     /// value, the environment variables MUST be lexicographically sorted by name.
     /// Sorting of strings is done by code point, or equivalently, by the UTF-8 bytes.
-    /// 
+    ///
     /// Here is how this is meant to be used with abrasive, in the abrasive.toml file
     /// a user may configure a whitelist of env vars that get picked up from the host.
     environment_variables: Vec<EnvironmentVariable>,
@@ -63,6 +112,59 @@ pub struct EnvironmentVariable {
     value: String,
 }
 
+// ---- Platform -----
+
+/// Platform triple, used to specify the cross compilation target.
+#[derive(Debug, Serialize, Deserialize)]
+pub struct PlatformTriple {
+    pub arch: Arch,
+    pub os: Os,
+    pub abi: Abi,
+}
+
+impl PlatformTriple {
+    pub fn as_cargo_target_string(&self) -> String {
+        match (&self.arch, &self.os, &self.abi) {
+            (Arch::X86_64, Os::Linux, Abi::Gnu) => "x86_64-unknown-linux-gnu",
+            (Arch::X86_64, Os::Linux, Abi::Musl) => "x86_64-unknown-linux-musl",
+            (Arch::Aarch64, Os::Linux, Abi::Gnu) => "aarch64-unknown-linux-gnu",
+            (Arch::Aarch64, Os::Linux, Abi::Musl) => "aarch64-unknown-linux-musl",
+            (Arch::X86_64, Os::Windows, Abi::Msvc) => "x86_64-pc-windows-msvc",
+            (Arch::X86_64, Os::Windows, Abi::Gnu) => "x86_64-pc-windows-gnu",
+            (Arch::Aarch64, Os::Windows, Abi::Msvc) => "aarch64-pc-windows-msvc",
+            (Arch::X86_64, Os::Mac, _) => "x86_64-apple-darwin",
+            (Arch::Aarch64, Os::Mac, _) => "aarch64-apple-darwin",
+            _ => unimplemented!(),
+        }
+        .to_string()
+    }
+}
+
+/// Architecture
+#[derive(Debug, Serialize, Deserialize)]
+#[repr(u8)]
+pub enum Arch {
+    X86_64 = 0,
+    Aarch64 = 1,
+}
+
+/// Operating System
+#[derive(Debug, Serialize, Deserialize)]
+#[repr(u8)]
+pub enum Os {
+    Windows = 0,
+    Linux = 1,
+    Mac = 2,
+}
+
+/// Application Binary Interface
+#[derive(Debug, Serialize, Deserialize)]
+#[repr(u8)]
+pub enum Abi {
+    Gnu = 0,
+    Musl = 1,
+    Msvc = 2,
+}
 
 // ---- Helpers -----
 
