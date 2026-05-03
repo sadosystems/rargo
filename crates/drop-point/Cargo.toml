@@ -6,3 +6,12 @@ description = "Remote cargo cache, part of abrasive"
 license = "MIT OR Apache-2.0"
 readme = "README.md"
 repository = "https://github.com/sadosystems/abrasive"
+
+[dependencies]
+log.workspace = true
+env_logger.workspace = true
+thiserror.workspace = true
+blake3.workspace = true
+tempfile.workspace = true
+zip.workspace = true
+zstd.workspace = true
