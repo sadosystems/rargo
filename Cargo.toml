@@ -13,6 +13,7 @@ log = "0.4"
 env_logger = "0.11"
 tempfile = "3"
 zip = { version = "0.6", default-features = false }
+toml = "0.8"
 
 [workspace.metadata.abrasive]
 host = "157.180.55.180"
