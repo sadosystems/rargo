@@ -138,11 +138,11 @@ fn get_workspace_toml_path() -> CliResult<Option<PathBuf>> {
 /// team = "public"
 /// scope = "abrasive"
 /// ```
-pub fn get_workspace() -> CliResult<Option<WorkspaceContext>> {
+pub fn get_workspace() -> CliResult<Option<AbrasiveContext>> {
     let cwd = env::current_dir().ok().ok_or(CliError::NoCwd)?;
 
     let workspace_ctx = get_workspace_toml_path()?
-        .map(|config| WorkspaceContext::from_paths(&config, &cwd))
+        .map(|config| AbrasiveContext::from_paths(&config, &cwd))
         .transpose()?;
 
     panic!("asd")
