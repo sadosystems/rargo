@@ -1,5 +1,6 @@
 use crate::errors::CliError;
 use crate::errors::CliResult;
+use crep::EnvironmentVariable;
 use serde::Deserialize;
 use std::env;
 use std::fs::read_to_string;
@@ -7,10 +8,9 @@ use std::fs::read_to_string;
 use std::os::unix::ffi::OsStringExt;
 use std::path::{Path, PathBuf};
 use std::process::Command;
-use crep::EnvironmentVariable;
 
 // These three Struct defs only exist for the purpose
-// of deriving a more typed toml serde. Manifest 
+// of deriving a more typed toml serde. Manifest
 // WorkspaceSection and MetadataSection are here to make it
 // easy to extract the [workspace.metadata.abrasive] table
 // from the Cargo.toml
@@ -28,7 +28,7 @@ struct MetadataSection {
     abrasive: AbrasiveConfig,
 }
 
-/// The actual configuration values stored in 
+/// The actual configuration values stored in
 /// [workspace.metadata.abrasive]
 #[derive(Deserialize)]
 pub struct AbrasiveConfig {
@@ -37,7 +37,7 @@ pub struct AbrasiveConfig {
     scope: String,
 }
 
-/// Context for an abrasive call. This stores all the information the CLI 
+/// Context for an abrasive call. This stores all the information the CLI
 /// or the broker will need which is missing from the args passed directly
 /// to the CLI. See crep::CargoCommand
 pub struct AbrasiveContext {
@@ -73,7 +73,7 @@ impl AbrasiveContext {
         let ctx = Self {
             abrasive_config,
             subdir,
-            environment_variables: vec![]
+            environment_variables: vec![],
         };
         Ok(ctx)
     }
