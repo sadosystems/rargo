@@ -1,6 +1,4 @@
 use abrasive::commands::handle_command;
-use serde::Deserialize;
-use std::os::unix::net::UnixStream;
 use std::process::ExitCode;
 
 /// This is sort of a hacky way to make the CLI feel faster.
