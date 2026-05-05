@@ -1,19 +1,19 @@
 //! crep: Cargo Remote Execution Protocol
-//! 
+//!
 //! This crate defines the protocol used by the abrasive cli and the abrasive broker.
-//! It defines the serialization for the messages in the protocol and it also serves 
+//! It defines serialization for the messages in the protocol and it also serves
 //! as specification / documentation.   
-//! 
+//!
 //! The crep is inspired in many ways by the REAPI, these are the key differences in
-//! the design goals. 
-//! 1. NOT horizontally scalable, the abrasive solution to horizontal scale is run 
+//! the design goals.
+//! 1. NOT horizontally scalable, the abrasive solution to horizontal scale is run
 //!    another instance.
 //! 2. Low Latency.
-//! 
+//!
 //! Taking these two things together, in crep both the client and the server hold more
-//! session state than the equivalent in REAPI, that is less pure and less scalable but
-//! it lets us do more cheap tricks to keep latency low. All logic that relies on 
-//! ephemeral session state, must have a fallback path. If the client or the server 
+//! session state than the equivalent in REAPI.
+//! that lets us do more cheap tricks to keep latency low. All logic that relies on
+//! ephemeral session state, must have a fallback path. If the client or the server
 //! restarts mid session the worst that should be able to happen is a slowdown.
 
 mod errors;
@@ -41,8 +41,6 @@ pub struct MessageMetadata {
     user_id: u32,
 }
 
-
-
 #[derive(Debug, Serialize, Deserialize)]
 pub enum MessageType {
     /// The client requests a splash text from the server.
@@ -60,7 +58,7 @@ pub enum MessageType {
     CommandRequest(CargoCommand),
 
     /// The server returns the exit code for the cargo command.
-    CommandResponse{ exit_code: u8 }
+    CommandResponse { exit_code: u8 },
 }
 
 // ---- Types -----
