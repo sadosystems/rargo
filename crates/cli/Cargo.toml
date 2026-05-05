@@ -8,5 +8,6 @@ readme = "README.md"
 repository = "https://github.com/sadosystems/abrasive"
 
 [dependencies]
+crep.workspace = true
 serde.workspace = true
 toml.workspace = true
