@@ -56,7 +56,16 @@ const ABRASIVE_COMMANDS: &[&str] = &[
 ];
 
 const BROKER_WHITELIST: &[&str] = &[
-    "build", "run", "test", "bench", "check", "clippy", "doc", "nop", "clean",
+    "build", 
+    "run", 
+    "test", 
+    "bench", 
+    "check", 
+    "clippy", 
+    "doc", 
+    "nop", 
+    "clean", 
+    "install"
 ];
 
 /// Helper for is the second arg (first is abrasive itself) in the
