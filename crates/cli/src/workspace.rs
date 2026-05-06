@@ -13,7 +13,7 @@ use std::process::Command;
 // of deriving a more typed toml serde. Manifest
 // WorkspaceSection and MetadataSection are here to make it
 // easy to extract the [workspace.metadata.abrasive] table
-// from the Cargo.toml
+// from Cargo.toml
 
 #[derive(Deserialize)]
 struct Manifest {
@@ -30,20 +30,20 @@ struct MetadataSection {
 
 /// The actual configuration values stored in
 /// [workspace.metadata.abrasive]
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 pub struct AbrasiveConfig {
-    host: String,
-    team: String,
-    scope: String,
+    pub host: String,
+    pub team: String,
+    pub scope: String,
 }
 
 /// Context for an abrasive call. This stores all the information the CLI
 /// or the broker will need which is missing from the args passed directly
 /// to the CLI. See crep::CargoCommand
 pub struct AbrasiveContext {
-    subdir: PathBuf,
-    abrasive_config: AbrasiveConfig,
-    environment_variables: Vec<EnvironmentVariable>,
+    pub subdir: PathBuf,
+    pub abrasive_config: AbrasiveConfig,
+    pub environment_variables: Vec<EnvironmentVariable>,
 }
 
 impl AbrasiveContext {
