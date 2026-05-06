@@ -29,20 +29,19 @@ use serde::{Deserialize, Serialize};
 pub const LOCAL: &str = "\x1b[38;2;100;200;220m[LOCAL] \x1b[0m";
 pub const REMOTE: &str = "\x1b[38;2;232;185;49m[REMOTE]\x1b[0m";
 
+#[macro_export]
 macro_rules! local {
     ($($arg:tt)*) => {
-        eprintln!("{} {}", $crate::commands::LOCAL, format_args!($($arg)*))
+        eprintln!("{} {}", $crate::LOCAL, format_args!($($arg)*))
     };
 }
 
+#[macro_export]
 macro_rules! remote {
     ($($arg:tt)*) => {
-        eprintln!("{} {}", $crate::commands::REMOTE, format_args!($($arg)*))
+        eprintln!("{} {}", $crate::REMOTE, format_args!($($arg)*))
     };
 }
-
-pub(crate) use local;
-pub(crate) use remote;
 
 // ---- Messages -----
 
