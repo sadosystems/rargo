@@ -18,6 +18,7 @@ pub enum CliError {
     EmptyToken,
     InvalidToken,
     NoMetaData,
+    WriteFail,
 }
 
 impl CliError {
@@ -54,6 +55,7 @@ impl CliError {
                 "The workspace manifest has no [workspace.metadata.abrasive] table".into(),
                 ExitCode::FAILURE,
             ),
+            Self::WriteFail => ("Write fail".into(), ExitCode::FAILURE),
         };
         eprintln!("{message}");
         exit_code
