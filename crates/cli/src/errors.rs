@@ -62,4 +62,3 @@ impl CliError {
     }
 }
 
-pub type CliResult<T> = Result<T, CliError>;

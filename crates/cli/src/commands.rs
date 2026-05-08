@@ -1,7 +1,6 @@
 use crate::auth;
-use crate::client;
 use crate::errors::CliError;
-use crate::errors::CliResult;
+use crate::client::CliResult;
 use crate::workspace::{AbrasiveContext, get_workspace};
 use clap::builder::styling::{AnsiColor, Styles};
 use clap::{CommandFactory, Parser, Subcommand};
