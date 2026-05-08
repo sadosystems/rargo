@@ -1,16 +1,35 @@
+use crate::auth;
+use crate::client;
 use crate::errors::CliError;
 use crate::errors::CliResult;
 use crate::workspace::{AbrasiveContext, get_workspace};
 use clap::builder::styling::{AnsiColor, Styles};
 use clap::{CommandFactory, Parser, Subcommand};
+use crep::local;
 use std::env;
-use std::process::{Command as Cmd, ExitCode, Stdio};
+use std::fs;
+#[cfg(unix)]
+use std::os::unix::fs::PermissionsExt;
+use std::path::PathBuf;
+use std::process::{Command as Cmd, ExitCode};
+use std::thread;
+use std::time::Duration;
 
 const STYLES: Styles = Styles::styled()
     .header(AnsiColor::Yellow.on_default().bold())
     .usage(AnsiColor::Yellow.on_default().bold())
     .literal(AnsiColor::Yellow.on_default().bold())
     .placeholder(AnsiColor::Yellow.on_default());
+
+pub struct Bin {
+    pub name: String,
+    pub contents: Vec<u8>,
+}
+
+enum BuildOutcome {
+    Done(u8, Option<Bin>),
+    SlotsBusy,
+}
 
 #[derive(Parser)]
 #[command(name = "abrasive", disable_version_flag = true, disable_help_flag = true, trailing_var_arg = true, styles = STYLES)]
@@ -56,16 +75,7 @@ const ABRASIVE_COMMANDS: &[&str] = &[
 ];
 
 const BROKER_WHITELIST: &[&str] = &[
-    "build", 
-    "run", 
-    "test", 
-    "bench", 
-    "check", 
-    "clippy", 
-    "doc", 
-    "nop", 
-    "clean", 
-    "install"
+    "build", "run", "test", "bench", "check", "clippy", "doc", "nop", "clean", "install",
 ];
 
 /// Helper for is the second arg (first is abrasive itself) in the
@@ -86,7 +96,7 @@ fn is_on_broker_whitelist(args: &[String]) -> bool {
 
 fn dispatch_abrasive_command(
     command: Option<Command>,
-    ctx: &Option<AbrasiveContext>,
+    _ctx: &Option<AbrasiveContext>, // I'll probably use this.
 ) -> CliResult<ExitCode> {
     match command {
         None => print_help(),
@@ -150,9 +160,69 @@ fn forward_args_to_local() -> CliResult<ExitCode> {
     }
 }
 
-fn try_remote(ctx: &AbrasiveContext, cargo_args: Vec<String>) -> CliResult<ExitCode> {
-    // Only whitelisted cargo commands run remotely; everything else
-    // (e.g. `clean`, `update`, `add`) falls through to local cargo.
+fn extract_post_dash(cargo_args: &[String]) -> Vec<String> {
+    cargo_args
+        .iter()
+        .position(|a| a == "--")
+        .map(|idx| cargo_args[idx + 1..].to_vec())
+        .unwrap_or_default()
+}
+
+fn is_run(cargo_args: &[String]) -> bool {
+    cargo_args.first().map(String::as_str) == Some("run")
+}
+
+fn attempt_build(
+    ctx: &AbrasiveContext,
+    cargo_args: &[String],
+    token: &str,
+) -> CliResult<BuildOutcome> {
+    panic!("attempt_build")
+}
+
+fn poll_for_build(
+    ctx: &AbrasiveContext,
+    cargo_args: Vec<String>,
+    token: &str,
+) -> CliResult<(u8, Option<Bin>)> {
+    loop {
+        match attempt_build(ctx, &cargo_args, token)? {
+            BuildOutcome::Done(code, bin) => break Ok((code, bin)),
+            BuildOutcome::SlotsBusy => {
+                eprintln!("dumb I know");
+                thread::sleep(Duration::from_secs(2));
+            }
+        }
+    }
+}
+
+fn run_bin(art: Bin, args: &[String]) -> CliResult<ExitCode> {
+    let path = write_temp_executable(&art.name, &art.contents)?;
+    local!("running {}", path.display());
+    let status = Cmd::new(&path)
+        .args(args)
+        .status()
+        .map_err(|_| CliError::WriteFail)?;
+    Ok(ExitCode::from(status.code().unwrap_or(1) as u8))
+}
+
+fn write_temp_executable(name: &str, contents: &[u8]) -> CliResult<PathBuf> {
+    let path = env::temp_dir().join(format!("abrasive-run-{name}"));
+    fs::write(&path, contents).ok().ok_or(CliError::WriteFail)?;
+
+    #[cfg(unix)]
+    {
+        let mut perms = fs::metadata(&path)
+            .map_err(|_| CliError::WriteFail)?
+            .permissions();
+        perms.set_mode(0o755);
+        fs::set_permissions(&path, perms).map_err(|_| CliError::WriteFail)?;
+    }
+    Ok(path)
+}
+
+fn send_broker_cmd(ctx: &AbrasiveContext, cargo_args: Vec<String>) -> CliResult<ExitCode> {
+    // Only whitelisted cargo commands get forwarded to the
     if cargo_args
         .first()
         .map_or(false, |cmd| BROKER_WHITELIST.contains(&cmd.as_str()))
@@ -160,14 +230,17 @@ fn try_remote(ctx: &AbrasiveContext, cargo_args: Vec<String>) -> CliResult<ExitC
         return forward_args_to_local();
     }
 
-    let run_args = extract_run_args(&cargo_args);
-    let token = auth::saved_token().ok_or(errors::AuthError::NoSavedToken)?;
-    let (code, artifact) = poll_for_build(ctx, cargo_args, &token)?;
-    if code != 0 {
-        return Ok(ExitCode::from(code));
+    let post_dash = extract_post_dash(&cargo_args);
+    let run = is_run(&cargo_args);
+
+    let resp = client::command_request(ctx, cargo_args)?;
+
+    if resp.code != 0 {
+        return Ok(ExitCode::from(resp.code));
     }
-    match (run_args, artifact) {
-        (Some(args), Some(art)) => exec_artifact_locally(art, &args),
+
+    match (run, bin) {
+        (true, Some(b)) => run_bin(b, &post_dash),
         _ => Ok(ExitCode::from(code)),
     }
 }
@@ -194,7 +267,7 @@ pub fn handle_command() -> CliResult<ExitCode> {
     // handling and the CWD must be an abrasive workspace, send the
     // command to the broker.
     match cli.command {
-        None => return try_remote(&ctx, cli.cargo_args),
+        None => return send_broker_cmd(&ctx, cli.cargo_args),
         _ => unreachable!(), // note to self, consider factoring this out
     }
 }

@@ -64,6 +64,9 @@ pub struct MessageMetadata {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub enum MessageType {
+    /// NOTE I think I am gonna replace this with more client side logic + splash.txt
+    /// thats always in the CAS + a CASBlobGet
+    ///
     /// The client requests a splash text from the server.
     ///
     /// Splash is basically just ping / pong. The messages in splash are like the
@@ -72,15 +75,48 @@ pub enum MessageType {
     /// version because in late night debugging sessions I often mix up numbers.
     SplashRequest,
 
-    /// The server returns a splash text to the client
+    /// The broker returns a splash text to the client
     SplashResponse(String),
 
-    /// The client asks the server to perform a cargo command.
-    CommandRequest(CargoCommand),
+    /// The client asks the broker to perform a cargo command.
+    CommandRequest{
+        command: CargoCommand,
+        /// For speculative sync. This can be empty, the broker will ask for any 
+        /// missing files.
+        files: Vec<File>, 
+        /// src everything digest so the broker can check if it needs to ask for
+        /// any missing files. 
+        source_digest: [u8; 32] 
+    },
 
-    /// The server returns the exit code for the cargo command.
-    CommandResponse { exit_code: u8 },
+    /// The broker returns the exit code for the cargo command and a list of
+    /// CAS paths for the binaries built by this cargo invocation.
+    ///
+    /// Binaries are found with this flag:
+    ///     --message-format=json-render-diagnostics
+    CommandResponse {
+        exit_code: u8,
+        files: Vec<File>, // bins
+    },
+
+    /// The client asks for files from the CAS
+    BulkFileRequest {
+        files: Vec<Digest>
+    },
+
+    /// The broker returns files from the CAS
+    BulkFileResponse {
+        files: Vec<File>,
+    },
+
+    BrokerMissingSources,
+
+    CargoStdout(Vec<u8>),
+    
+    CargoStderr(Vec<u8>),
+
 }
+
 
 // ---- Types -----
 
@@ -129,6 +165,35 @@ pub struct EnvironmentVariable {
     /// The variable value.
     value: String,
 }
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Digest {
+    // The hash, represented as a lowercase hexadecimal string, padded with
+    // leading zeroes up to the hash function length.
+    hash: String,
+    // The size of the blob, in bytes.
+    size_bytes: u64,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct File {
+    /// The full path of the file relative to the working directory, including the
+    /// filename. The path separator is a forward slash `/`. Since this is a
+    /// relative path, it MUST NOT begin with a leading forward slash.
+    path: String,
+    
+    /// The digest of the file's content.
+    digest: Digest,
+
+    /// The contents of the file if inlining is enabled for the message.
+    /// The session-state-ful part of the protocol decides if it wants to
+    /// populate this or not (speculates the client is likely to have the
+    /// contents in its local cache.
+    contents: Vec<u8>
+}
+
+ 
+
 
 // ---- Platform -----
 
