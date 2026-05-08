@@ -1,5 +1,5 @@
-use crate::errors::CliError;
 use crate::client::CliResult;
+use crate::errors::CliError;
 use crep::EnvironmentVariable;
 use serde::Deserialize;
 use std::env;

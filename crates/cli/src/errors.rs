@@ -61,4 +61,3 @@ impl CliError {
         exit_code
     }
 }
-
