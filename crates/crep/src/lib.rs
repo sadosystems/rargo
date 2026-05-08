@@ -64,30 +64,8 @@ pub struct MessageMetadata {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub enum MessageType {
-    /// NOTE I think I am gonna replace this with more client side logic + splash.txt
-    /// thats always in the CAS + a CASBlobGet
-    ///
-    /// The client requests a splash text from the server.
-    ///
-    /// Splash is basically just ping / pong. The messages in splash are like the
-    /// splash text messages from Minecraft. I prefer these for checking if the
-    /// server is alive / checking if the server has been redeployed to a new
-    /// version because in late night debugging sessions I often mix up numbers.
-    SplashRequest,
-
-    /// The broker returns a splash text to the client
-    SplashResponse(String),
-
-    /// The client asks the broker to perform a cargo command.
-    CommandRequest{
-        command: CargoCommand,
-        /// For speculative sync. This can be empty, the broker will ask for any 
-        /// missing files.
-        files: Vec<File>, 
-        /// src everything digest so the broker can check if it needs to ask for
-        /// any missing files. 
-        source_digest: [u8; 32] 
-    },
+    /// The client asks the broker to execute a cargo command.
+    CommandRequest(CommandRequest),
 
     /// The broker returns the exit code for the cargo command and a list of
     /// CAS paths for the binaries built by this cargo invocation.
@@ -101,7 +79,7 @@ pub enum MessageType {
 
     /// The client asks for files from the CAS
     BulkFileRequest {
-        files: Vec<Digest>
+        files: Vec<Digest>,
     },
 
     /// The broker returns files from the CAS
@@ -112,11 +90,20 @@ pub enum MessageType {
     BrokerMissingSources,
 
     CargoStdout(Vec<u8>),
-    
-    CargoStderr(Vec<u8>),
 
+    CargoStderr(Vec<u8>),
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct CommandRequest {
+    command: CargoCommand,
+    /// For speculative sync. This can be empty, the broker will ask for any
+    /// missing files.
+    files: Vec<File>,
+    /// src everything digest so the broker can check if it needs to ask for
+    /// any missing files.
+    source_digest: [u8; 32],
+}
 
 // ---- Types -----
 
@@ -181,7 +168,7 @@ pub struct File {
     /// filename. The path separator is a forward slash `/`. Since this is a
     /// relative path, it MUST NOT begin with a leading forward slash.
     path: String,
-    
+
     /// The digest of the file's content.
     digest: Digest,
 
@@ -189,11 +176,8 @@ pub struct File {
     /// The session-state-ful part of the protocol decides if it wants to
     /// populate this or not (speculates the client is likely to have the
     /// contents in its local cache.
-    contents: Vec<u8>
+    contents: Vec<u8>,
 }
-
- 
-
 
 // ---- Platform -----
 
