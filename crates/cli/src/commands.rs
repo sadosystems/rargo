@@ -1,6 +1,6 @@
 use crate::auth;
 use crate::errors::CliError;
-use crate::client::CliResult;
+use crate::client::{CliResult, command_request};
 use crate::workspace::{AbrasiveContext, get_workspace};
 use clap::builder::styling::{AnsiColor, Styles};
 use clap::{CommandFactory, Parser, Subcommand};
@@ -232,7 +232,7 @@ fn send_broker_cmd(ctx: &AbrasiveContext, cargo_args: Vec<String>) -> CliResult<
     let post_dash = extract_post_dash(&cargo_args);
     let run = is_run(&cargo_args);
 
-    let resp = client::command_request(ctx, cargo_args)?;
+    let resp = command_request(ctx, cargo_args)?;
 
     if resp.code != 0 {
         return Ok(ExitCode::from(resp.code));
