@@ -3,7 +3,7 @@ hypothesis based tests I work with / on at $job. I have had the most success wit
 tests that are very data driven and treat the implementation mostly as a black box.
 the matklad essay on basically this is very very good
 https://matklad.github.io/2021/05/31/how-to-test.html
-I would like to take this project as an opportunity to excercise some of these
+I would like to take this project as an opportunity to exercise some of these
 principles, as well as the this essay:
 https://matklad.github.io/2024/01/03/of-rats-and-ratchets.html
 
