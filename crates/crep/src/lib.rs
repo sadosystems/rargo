@@ -72,10 +72,7 @@ pub enum MessageType {
     ///
     /// Binaries are found with this flag:
     ///     --message-format=json-render-diagnostics
-    CommandResponse {
-        exit_code: u8,
-        files: Vec<File>, // bins
-    },
+    CommandResponse(CommandResponse),
 
     /// The client asks for files from the CAS
     BulkFileRequest {
@@ -86,8 +83,6 @@ pub enum MessageType {
     BulkFileResponse {
         files: Vec<File>,
     },
-
-    BrokerMissingSources,
 
     CargoStdout(Vec<u8>),
 
@@ -103,6 +98,18 @@ pub struct CommandRequest {
     /// src everything digest so the broker can check if it needs to ask for
     /// any missing files.
     source_digest: [u8; 32],
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct CommandResponseSuccess {
+    exit_code: u8,
+    files: Vec<File>, // bins
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub enum CommandResponse {
+    Complete(CommandResponseSuccess),
+    NeedFiles(Vec<File>),
 }
 
 // ---- Types -----
