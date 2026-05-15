@@ -1,3 +1,7 @@
+# Tests
+This will eventually all get deleted as it evolves from a brain dump of "how
+should I test this stuff??" to "How we test this stuff"  
+
 I have never had all that much luck with tests, except for the extensive suite of 
 hypothesis based tests I work with / on at $job. I have had the most success with
 tests that are very data driven and treat the implementation mostly as a black box.
