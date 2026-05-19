@@ -38,4 +38,4 @@ I did a little bit of an ADHD research binge, here are the loose ends from that:
 https://lib.rs/crates/arbitrary
 https://buttondown.com/hillelwayne/archive/cross-branch-testing/
 https://sans-io.readthedocs.io/
-https://vorpus.org/blog/notes-on-structured-concurrency-or-go-statement-considered-harmful/
+https://vorpus.org/blog/notes-on-structured-concurrency-or-go-statement-considered-harmful/ [READ] 
