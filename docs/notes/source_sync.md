@@ -15,6 +15,7 @@ https://github.com/buildbarn/bonanza/blob/8e8c7aa25603b16fa3e6bd992da0c273d78a53
 https://docs.dolthub.com/architecture/storage-engine/prolly-tree
 https://www.dolthub.com/blog/2022-06-27-prolly-chunker/
 https://www.dolthub.com/blog/2025-06-03-people-keep-inventing-prolly-trees/
+https://github.com/attic-labs/noms/blob/master/doc/intro.md#prolly-tree-construction
 
 I started on this and realized I actually didn't understand how to write proper
 rust data structures as well as I thought, so I ended up reading this cool book:
