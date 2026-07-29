@@ -11,6 +11,10 @@ I would like to take this project as an opportunity to exercise some of these
 principles, as well as the this essay:
 https://matklad.github.io/2024/01/03/of-rats-and-ratchets.html
 
+(The major issue with this kind of test however is they don't cache well! if we want
+to only rerun the tests that a set of changes could effect, true black box would mean
+we always rerun... right?)
+
 In particular I think it would be good to write down some invariants that I think 
 should hold for a completed version of this project, then write some tests against a
 dream api / the application itself so I can see them all fail, THEN I want to write
@@ -28,7 +32,7 @@ also the sans IO idea really struck me. I have no clue how to make this sans IO.
 what we have here is basically microservices...
 
 I think what I want is some defined state machines and an event like system similar
-to what I did for the bus orchestrator, everything is 
+to what I did for the other thing, everything is 
 (State, Event, T(or delta_t)) -> State2, Effect
 then I can write a sim that runs all my little micro services or whatever in one 
 process and have control over scheduling... but that leaves a big open question for me
@@ -38,4 +42,7 @@ I did a little bit of an ADHD research binge, here are the loose ends from that:
 https://lib.rs/crates/arbitrary
 https://buttondown.com/hillelwayne/archive/cross-branch-testing/
 https://sans-io.readthedocs.io/
-https://vorpus.org/blog/notes-on-structured-concurrency-or-go-statement-considered-harmful/ [READ] 
+https://vorpus.org/blog/notes-on-structured-concurrency-or-go-statement-considered-harmful/
+
+ok coming back to this a while later, I think that as long as rargo is happy to run all the
+services on one machine... fine. good enough. I'll just run them for real as the test.
