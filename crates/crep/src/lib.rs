@@ -1,12 +1,12 @@
 //! crep: Cargo Remote Execution Protocol
 //!
-//! This crate defines the protocol used by the abrasive cli and the abrasive broker.
+//! This crate defines the protocol used by the rargo cli and the rargo broker.
 //! It defines serialization for the messages in the protocol and it also serves
 //! as specification / documentation.   
 //!
 //! The crep is inspired in many ways by the REAPI, these are the key differences in
 //! the design goals.
-//! 1. NOT horizontally scalable, the abrasive solution to horizontal scale is run
+//! 1. NOT horizontally scalable, the rargo solution to horizontal scale is run
 //!    another instance.
 //! 2. Low Latency.
 //!
@@ -24,7 +24,7 @@ use serde::{Deserialize, Serialize};
 
 // ANSI-colored origin tags. (w/ reset)
 // [LOCAL] is teal-ish blue
-// [REMOTE] in abrasive's gold/orange.
+// [REMOTE] in rargo's gold/orange.
 
 pub const LOCAL: &str = "\x1b[38;2;100;200;220m[LOCAL] \x1b[0m";
 pub const REMOTE: &str = "\x1b[38;2;232;185;49m[REMOTE]\x1b[0m";
@@ -53,7 +53,7 @@ pub struct Message {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct MessageMetadata {
-    /// The instance name is a unique identifier for a given instance of abrasive.
+    /// The instance name is a unique identifier for a given instance of rargo.
     /// An instance has: exactly one broker, N workers and optionally an  
     /// observability SPA server.
     instance_name: String,
@@ -116,8 +116,8 @@ pub enum CommandResponse {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CargoCommand {
-    /// The arguments passed to abrasive meant for cargo, split on whitespace.
-    /// this does not include the 'cargo' / 'abrasive' part of the command.
+    /// The arguments passed to rargo meant for cargo, split on whitespace.
+    /// this does not include the 'cargo' / 'rargo' part of the command.
     /// for example:
     /// ["build", "--lib", "-p", "crep"]
     args: Vec<String>,
@@ -142,7 +142,7 @@ pub struct CargoCommand {
     /// value, the environment variables MUST be lexicographically sorted by name.
     /// Sorting of strings is done by code point, or equivalently, by the UTF-8 bytes.
     ///
-    /// Here is how this is meant to be used with abrasive, in the abrasive.toml file
+    /// Here is how this is meant to be used with rargo, in the rargo.toml file
     /// a user may configure a whitelist of env vars that get picked up from the host.
     environment_variables: Vec<EnvironmentVariable>,
 

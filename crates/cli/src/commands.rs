@@ -1,7 +1,7 @@
 use crate::auth;
 use crate::client::{CliResult, command_request};
 use crate::errors::CliError;
-use crate::workspace::{AbrasiveContext, get_workspace};
+use crate::workspace::{rargoContext, get_workspace};
 use clap::builder::styling::{AnsiColor, Styles};
 use clap::{CommandFactory, Parser, Subcommand};
 use crep::local;
@@ -31,7 +31,7 @@ enum BuildOutcome {
 }
 
 #[derive(Parser)]
-#[command(name = "abrasive", disable_version_flag = true, disable_help_flag = true, trailing_var_arg = true, styles = STYLES)]
+#[command(name = "rargo", disable_version_flag = true, disable_help_flag = true, trailing_var_arg = true, styles = STYLES)]
 struct Cli {
     #[command(subcommand)]
     pub command: Option<Command>,
@@ -43,17 +43,17 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Command {
-    /// Initialize abrasive for this project
+    /// Initialize rargo for this project
     Setup,
 
     /// Authenticate with the build server
     Auth,
 
-    /// Print abrasive and cargo versions
+    /// Print rargo and cargo versions
     #[command(name = "--version", aliases = ["-V"])]
     Version,
 
-    /// Get help for abrasive and cargo
+    /// Get help for rargo and cargo
     #[command(name = "--help", aliases = ["-h"])]
     Help,
 
@@ -62,7 +62,7 @@ enum Command {
     Splash,
 }
 
-const ABRASIVE_COMMANDS: &[&str] = &[
+const rargo_COMMANDS: &[&str] = &[
     "setup",
     "auth",
     "--version",
@@ -77,14 +77,14 @@ const BROKER_WHITELIST: &[&str] = &[
     "build", "run", "test", "bench", "check", "clippy", "doc", "nop", "clean", "install",
 ];
 
-/// Helper for is the second arg (first is abrasive itself) in the
-/// LOCAL_ABRASIVE_COMMANDS list. These are the commands that the
-/// abrasive client has special handling for (instead of simply
+/// Helper for is the second arg (first is rargo itself) in the
+/// LOCAL_rargo_COMMANDS list. These are the commands that the
+/// rargo client has special handling for (instead of simply
 /// forwarding the args to the broker)
-fn is_abrasive_command() -> bool {
+fn is_rargo_command() -> bool {
     env::args()
         .nth(1)
-        .map_or(true, |arg| ABRASIVE_COMMANDS.contains(&arg.as_str()))
+        .map_or(true, |arg| rargo_COMMANDS.contains(&arg.as_str()))
 }
 
 /// Helper for
@@ -93,9 +93,9 @@ fn is_on_broker_whitelist(args: &[String]) -> bool {
         .map_or(false, |cmd| BROKER_WHITELIST.contains(&cmd.as_str()))
 }
 
-fn dispatch_abrasive_command(
+fn dispatch_rargo_command(
     command: Option<Command>,
-    _ctx: &Option<AbrasiveContext>, // I'll probably use this.
+    _ctx: &Option<rargoContext>, // I'll probably use this.
 ) -> CliResult<ExitCode> {
     match command {
         None => print_help(),
@@ -118,16 +118,16 @@ pub fn login() -> CliResult<()> {
     todo!("login")
 }
 
-/// Print the Abrasive version string first, followed by the host
+/// Print the rargo version string first, followed by the host
 /// host version. Just shells out to the host cargo.
 fn print_version() {
-    println!("abrasive {}", env!("CARGO_PKG_VERSION"));
+    println!("rargo {}", env!("CARGO_PKG_VERSION"));
     let _ = Cmd::new("cargo").arg("--version").status();
 }
 
-/// Print the Abrasive help first, followed by the cargo help
+/// Print the rargo help first, followed by the cargo help
 fn print_help() {
-    println!("ABRASIVE {}\n", env!("CARGO_PKG_VERSION"));
+    println!("rargo {}\n", env!("CARGO_PKG_VERSION"));
     let _ = Cli::command().color(clap::ColorChoice::Always).print_help();
     let _ = Cmd::new("cargo").arg("--help").status();
 }
@@ -172,7 +172,7 @@ fn is_run(cargo_args: &[String]) -> bool {
 }
 
 fn attempt_build(
-    ctx: &AbrasiveContext,
+    ctx: &rargoContext,
     cargo_args: &[String],
     token: &str,
 ) -> CliResult<BuildOutcome> {
@@ -180,7 +180,7 @@ fn attempt_build(
 }
 
 fn poll_for_build(
-    ctx: &AbrasiveContext,
+    ctx: &rargoContext,
     cargo_args: Vec<String>,
     token: &str,
 ) -> CliResult<(u8, Option<Bin>)> {
@@ -206,7 +206,7 @@ fn run_bin(art: Bin, args: &[String]) -> CliResult<ExitCode> {
 }
 
 fn write_temp_executable(name: &str, contents: &[u8]) -> CliResult<PathBuf> {
-    let path = env::temp_dir().join(format!("abrasive-run-{name}"));
+    let path = env::temp_dir().join(format!("rargo-run-{name}"));
     fs::write(&path, contents).ok().ok_or(CliError::WriteFail)?;
 
     #[cfg(unix)]
@@ -220,7 +220,7 @@ fn write_temp_executable(name: &str, contents: &[u8]) -> CliResult<PathBuf> {
     Ok(path)
 }
 
-fn send_broker_cmd(ctx: &AbrasiveContext, cargo_args: Vec<String>) -> CliResult<ExitCode> {
+fn send_broker_cmd(ctx: &rargoContext, cargo_args: Vec<String>) -> CliResult<ExitCode> {
     // Only whitelisted cargo commands get forwarded to the
     if cargo_args
         .first()
@@ -248,14 +248,14 @@ pub fn handle_command() -> CliResult<ExitCode> {
     let ctx = get_workspace()?;
     let cli = Cli::parse();
 
-    // Handle all the "abrasive commands". These are all the cli
+    // Handle all the "rargo commands". These are all the cli
     // commands which are not just remote cargo commands.
-    if is_abrasive_command() {
-        return dispatch_abrasive_command(cli.command, &ctx);
+    if is_rargo_command() {
+        return dispatch_rargo_command(cli.command, &ctx);
     }
 
-    // If The CWD is not an abrasive workspace AND the command is
-    // not specific to abrasive, it passes through to the local
+    // If The CWD is not an rargo workspace AND the command is
+    // not specific to rargo, it passes through to the local
     // cargo.
     let ctx = match ctx {
         None => return forward_args_to_local(),
@@ -263,7 +263,7 @@ pub fn handle_command() -> CliResult<ExitCode> {
     };
 
     // At this point the command does not need special client
-    // handling and the CWD must be an abrasive workspace, send the
+    // handling and the CWD must be an rargo workspace, send the
     // command to the broker.
     match cli.command {
         None => return send_broker_cmd(&ctx, cli.cargo_args),

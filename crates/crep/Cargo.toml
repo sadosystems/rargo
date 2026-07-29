@@ -2,10 +2,10 @@
 name = "crep"
 version = "0.0.1"
 edition = "2024"
-description = "Wire protocol for abrasive, a rust development platform"
+description = "Wire protocol for rargo, a rust development platform"
 license = "MIT OR Apache-2.0"
 readme = "README.md"
-repository = "https://github.com/sadosystems/abrasive"
+repository = "https://github.com/sadosystems/rargo"
 
 [dependencies]
 thiserror.workspace = true

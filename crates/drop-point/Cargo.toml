@@ -2,10 +2,10 @@
 name = "drop-point"
 version = "0.0.1"
 edition = "2024"
-description = "Remote cargo cache, part of abrasive"
+description = "Remote cargo cache, part of rargo"
 license = "MIT OR Apache-2.0"
 readme = "README.md"
-repository = "https://github.com/sadosystems/abrasive"
+repository = "https://github.com/sadosystems/rargo"
 
 [dependencies]
 log.workspace = true

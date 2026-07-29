@@ -1,6 +1,6 @@
 <p align="center">
-  <img src="assets/AbrasiveKeys.png" width="300">
+  <img src="assets/rargoKeys.png" width="300">
 </p> 
 
-# abrasive
+# rargo
 Rust development platform for teams. {Fast, Correct, Cargo} Choose three!

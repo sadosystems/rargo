@@ -32,7 +32,7 @@ impl CliError {
                 ExitCode::FAILURE,
             ),
             Self::InvalidPath(p) => (format!("invalid path: {p}").into(), ExitCode::FAILURE),
-            Self::NoToml => ("Cannot read abrasive.toml".into(), ExitCode::FAILURE),
+            Self::NoToml => ("Cannot read rargo.toml".into(), ExitCode::FAILURE),
             Self::InvalidToml(p) => (format!("invalid toml: {p}").into(), ExitCode::FAILURE),
             Self::NoCwd => (
                 "Cannot determine current directory.".into(),
@@ -40,7 +40,7 @@ impl CliError {
             ),
             Self::CargoNotFound => ("Cargo not found".into(), ExitCode::from(127)),
             Self::NoSavedToken => (
-                "Not logged in, run `abrasive auth` first".into(),
+                "Not logged in, run `rargo auth` first".into(),
                 ExitCode::FAILURE,
             ),
             Self::NoHome => ("No HOME or USERPROFILE set".into(), ExitCode::FAILURE),
@@ -48,11 +48,11 @@ impl CliError {
             Self::ReadStdin => ("Failed to read token from stdin".into(), ExitCode::FAILURE),
             Self::EmptyToken => ("No token was entered".into(), ExitCode::FAILURE),
             Self::InvalidToken => (
-                "Token must start with `abrasive_`".into(),
+                "Token must start with `rargo_`".into(),
                 ExitCode::FAILURE,
             ),
             Self::NoMetaData => (
-                "The workspace manifest has no [workspace.metadata.abrasive] table".into(),
+                "The workspace manifest has no [workspace.metadata.rargo] table".into(),
                 ExitCode::FAILURE,
             ),
             Self::WriteFail => ("Write fail".into(), ExitCode::FAILURE),

@@ -12,7 +12,7 @@ use std::process::Command;
 // These three Struct defs only exist for the purpose
 // of deriving a more typed toml serde. Manifest
 // WorkspaceSection and MetadataSection are here to make it
-// easy to extract the [workspace.metadata.abrasive] table
+// easy to extract the [workspace.metadata.rargo] table
 // from Cargo.toml
 
 #[derive(Deserialize)]
@@ -25,28 +25,28 @@ struct WorkspaceSection {
 }
 #[derive(Deserialize)]
 struct MetadataSection {
-    abrasive: AbrasiveConfig,
+    rargo: rargoConfig,
 }
 
 /// The actual configuration values stored in
-/// [workspace.metadata.abrasive]
+/// [workspace.metadata.rargo]
 #[derive(Deserialize, Debug)]
-pub struct AbrasiveConfig {
+pub struct rargoConfig {
     pub host: String,
     pub team: String,
     pub scope: String,
 }
 
-/// Context for an abrasive call. This stores all the information the CLI
+/// Context for an rargo call. This stores all the information the CLI
 /// or the broker will need which is missing from the args passed directly
 /// to the CLI. See crep::CargoCommand
-pub struct AbrasiveContext {
+pub struct rargoContext {
     pub subdir: PathBuf,
-    pub abrasive_config: AbrasiveConfig,
+    pub rargo_config: rargoConfig,
     pub environment_variables: Vec<EnvironmentVariable>,
 }
 
-impl AbrasiveContext {
+impl rargoContext {
     pub fn from_paths(cargo_toml_path: &Path, called_from: &Path) -> CliResult<Self> {
         let parent = cargo_toml_path.parent();
         assert!(
@@ -64,14 +64,14 @@ impl AbrasiveContext {
 
         let cargo_toml: Manifest =
             toml::from_str(&cargo_toml).map_err(|e| CliError::InvalidToml(e.to_string()))?;
-        let abrasive_config = cargo_toml
+        let rargo_config = cargo_toml
             .workspace
             .and_then(|w| w.metadata)
-            .map(|m| m.abrasive)
+            .map(|m| m.rargo)
             .ok_or(CliError::NoMetaData)?;
 
         let ctx = Self {
-            abrasive_config,
+            rargo_config,
             subdir,
             environment_variables: vec![],
         };
@@ -124,25 +124,25 @@ fn get_workspace_toml_path() -> CliResult<Option<PathBuf>> {
     Ok(Some(path))
 }
 
-/// Returns the Abrasive Workspace context. The configuration for the
-/// abrasive workspace is stored in the workspace root Cargo.toml
+/// Returns the rargo Workspace context. The configuration for the
+/// rargo workspace is stored in the workspace root Cargo.toml
 /// file. Uses the blessed mechanism for storing custom tool specific
 /// metadata in the Cargo.toml file at the workspace root. Ref:
 /// https://doc.rust-lang.org/cargo/reference/workspaces.html#the-metadata-table
 ///
-/// For abrasive, that metadata looks like:
+/// For rargo, that metadata looks like:
 ///
 /// ```
-/// [workspace.metadata.abrasive]
+/// [workspace.metadata.rargo]
 /// host = "157.180.55.180"
 /// team = "public"
-/// scope = "abrasive"
+/// scope = "rargo"
 /// ```
-pub fn get_workspace() -> CliResult<Option<AbrasiveContext>> {
+pub fn get_workspace() -> CliResult<Option<rargoContext>> {
     let cwd = env::current_dir().ok().ok_or(CliError::NoCwd)?;
 
-    let abrasive_ctx = get_workspace_toml_path()?
-        .map(|config| AbrasiveContext::from_paths(&config, &cwd))
+    let rargo_ctx = get_workspace_toml_path()?
+        .map(|config| rargoContext::from_paths(&config, &cwd))
         .transpose()?;
-    Ok(abrasive_ctx)
+    Ok(rargo_ctx)
 }

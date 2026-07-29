@@ -1,10 +1,10 @@
-use abrasive::commands::handle_command;
+use rargo::commands::handle_command;
 use std::process::ExitCode;
 
 /// This is sort of a hacky way to make the CLI feel faster.
 /// Avoid the Websocket handshake by leaving it open in another
 /// process. The next time the CLI needs to message the broker it will
-/// pipe the message to the long lived process (the abrasive-agent)
+/// pipe the message to the long lived process (the rargo-agent)
 ///
 /// The agent forwards the message to the broker.
 /// The speed up is only noticeable for cache hits (100ms-1s)
