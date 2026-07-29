@@ -1,8 +1,0 @@
-[package]
-name = "seascape"
-version = "0.0.1"
-edition = "2024"
-description = "hermetic build container runtime for cargo, part of rargo"
-license = "MIT OR Apache-2.0"
-readme = "README.md"
-repository = "https://github.com/sadosystems/rargo"

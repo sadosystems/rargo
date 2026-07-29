@@ -1,3 +1,0 @@
-# seascape: Seascape is a rootless container runtime and executor that runs build actions in hermetic sandboxes. it is largely adapted from cargo-maelstrom, in particular: maelstrom-worker-child, maelstrom-linux.
-
-the idea here tbd if this idea actually works is to do what I spoke with bonobbio about in discord, define layers with nix instead of the maelstrom toml layer syntax and run builds in the containers instead of tests.
